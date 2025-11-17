@@ -1,0 +1,45 @@
+概要
+MERNアプリ作成mongoDB,express,react,node.js
+react, reduxの状態管理
+JWTでユーザ認証、ログイン、新規登録API
+MaterialUI	
+MongoDBとスキーマ
+ミドルウェアとバリデーション
+
+フロント答え
+https://github.com/Shin-sibainu/notion-clone-client
+
+バックエンド答え
+https://github.com/Shin-sibainu/notion-clone-server
+
+セクション3: 【Notionアプリ開発】バックエンド構築編(Node.jsとMongoDBを使用)
+再生
+8. Expressフレームワークを使ってローカルサーバーを構築しよう
+node -v 16.16.0,npm -v 8.11.0
+v22.20.0、11.6.1
+requireでexpressを読んで、express()でアプリ作成して、listenでサーバ起動
+9. 指定したPORT番号でサーバーが立ち上がるのか確認してみよう
+get()でlocalhostにアクセスした時の挙動を定義している。res.sendで描画している
+
+10. Notionユーザー管理の流れを理解してみよう
+ユーザ新規登録の流れ
+クライアントからリクエストがくる。サーバーがDBにapi経由でsaveするように命令する。
+11. ユーザー管理用にMongoDBを利用してみよう
+
+12. ユーザースキーマを構築してみよう
+https://mongoosejs.com/docs/index.html
+requireで読み込んで、schemaで定義して、modelを作成してexportsで外部公開
+13. サーバーとデータベースを接続してみよう
+https://mongoosejs.com/docs/connections.html
+mongoose.connectでMongoDBと接続している。
+14. dotenvモジュールを使ってURLを第三者に見られないように保護しよう
+MongoDBの接続情報をそのままGitにあげるのは危ないから環境変数として.envファイルに移しておく。
+require(dotenv).configで読み込んで、process.env.MONGO_URLで呼び出す
+
+
+
+
+
+
+
+

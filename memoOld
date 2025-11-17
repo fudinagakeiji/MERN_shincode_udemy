@@ -1,0 +1,533 @@
+----------------------------------------------------
+8:50-10:08
+#セクション3: 【Notionアプリ開発】バックエンド構築編(Node.jsとMongoDBを使用)
+再生
+8. Expressフレームワークを使ってローカルサーバーを構築しよう
+4分
+npm init -y をserverディレクトリで実行
+npm i express nodemon
+scriptsを書き換えnodemon index.jsをnpm run devできるようにして
+
+index.jsをnpm
+require express
+express()
+
+app.listenでローカルサーバ立ち上げ
+
+9. 指定したPORT番号でサーバーが立ち上がるのか確認してみよう
+3分
+endpointを作成する。app.getを使う。
+ろーかるさーばは動いているみたいだけどapp.getはPORT5000だと動かなかった。
+
+
+10. Notionユーザー管理の流れを理解してみよう
+3分
+クライアント(req)→サーバー→DBはMongoDB使う。
+
+11. ユーザー管理用にMongoDBを利用してみよう
+4分
+MongoDBを作成。
+
+
+12. ユーザースキーマを構築してみよう
+6分
+データの構造、モデルを作るためにmongooseを使って接続する。
+https://mongoosejs.com/docs/index.html
+npm install mongoose --save
+server/src/v1/models/user.jsでユーザのスキーマを作成する。
+requiremongoose
+new mongoose.schema
+usernametype,required,uniqueを設定する。
+モデルをexportsする
+
+13. サーバーとデータベースを接続してみよう
+5分
+mongoose.connectで間違ったパスワードとか設定してもtrycatch文でtryを通ってしまう。。
+14. dotenvモジュールを使ってURLを第三者に見られないように保護しよう
+npm i -D dotenvこれで.envファイルでmongoDBのパスワードとかURLをgitにあげないようにすることができる。
+
+#セクション4: 【Notionアプリ開発】WebAPI構築編(新規登録、ログイン、JWTトークン発行)
+再生
+15. ユーザー新規登録API作成の流れ
+4分
+クライアントーサーバーーDBのサーバー部分にwebAPIを作る。
+APIは蛇口みたいなもん。
+登録の流れは6ステップで作成していく。
+
+16. 早速WebAPIを作成してみよう
+5分
+server/index.jsにユーザー新規登録のwebAPIを作成する
+クライアントで書いたパスワードを変数に入れてcryptというライブラリでパスワードを受け取ってそれを暗号化する。
+暗号化方式はAES公式をみながらやってね
+https://www.npmjs.com/package/crypto-js#aes-encryption
+
+
+17. パスワードを暗号化してユーザーをDBに保存してみよう
+5分
+
+暗号化する時はAES方式ででencrypt関数を使う。
+シークレットキーは.envファイルに入れておく。process.envで使う。
+新規作成するユーザーのモデルをrequireでとってくる。
+非同期でmongooseのモデルを新規作成createする。
+https://mongoosejs.com/docs/models.html
+
+18. JWTってなに？どの場面で使うの？
+2分
+JSONWebToken
+ログインする時にパスワードとかを直接使わないで再利用したりするトークン→暗号化された文字列
+キャッシュ、ローカルストレージとかクライアント側に残せる。ライブラリだからインストールしようね。
+
+19. JWTをクライアント側に発行してみよう
+5分
+JWTライブラリをインストールする、requireで呼ぶ。
+signメソッドでidに基づいたトークンを発行する。
+シークレットキーは.envに。クライアントに24時間だけ保存するように書いて、user,tokenを成功したらreturnで返す。res.status
+失敗した時もerrを返す。
+https://www.npmjs.com/package/jsonwebtoken
+
+
+20. Postmanをインストールしよう
+2分
+再生
+21. PostmanでWebAPIテストをしてみよう
+6分
+postmanを使ってpostメソッドで新規作成できるか確認。
+JSONでパスワードを扱えるようにapp.use(express.json());を追加する。
+post body raw JSON
+mongoDBを確認 view monitering>collection
+
+
+22. express-validatorを使ってバリデーションチェックをはじめよう
+4分
+npmでこのモジュールをインストールする。requireして、新規登録APIのエンドポイントの後。
+postメソッドの第二引数の部分にバリデーターを書く。
+エラーメッセージもここでかけちゃう。
+app.post("/register",＜ここに書く＞,async (req, res) => {
+https://express-validator.github.io/docs/guides/getting-started
+
+23. すでにDBにユーザーが存在している場合のエラーハンドリング
+3分
+これもexpress-validatorをつかってエラーハンドリングできる。
+カスタムバリデータレベル
+https://express-validator.github.io/docs/guides/customizing#custom-validator-level-message
+body.custom関数を使って
+findOneを使ってユーザモデルから探してusernameとvalueが同じユーザーを見つけて、then,promise.rejectでエラー文を出す。
+
+24. バリデーションエラーを出力する機能を実装しよう
+3分
+express-validatorから持ってきたvalidationResult関数でerrorsがあるかどうかを調べてエラーを返すif文作成する。
+
+25. 正常にバリデーションチェックができているかテストしてみよう
+4分
+再生
+26. 運用・保守しやすくするためにリファクタリングしよう：その１
+6分
+
+routes/auth.jsを作って、api関連をここに入れておく、その際にインポートしていたものもを適宜移動する。
+require("dotenv").config();とかはindexでも使っているから移動じゃなくて複製することにする。
+エンドポイントがv1/routesがつけたさのに気をつけてね。
+app変数をrouterに書き換えて、exportsもしてね。
+app.useでroutesから使えるようにする宣言もする。
+postmanで確認
+
+27. 運用・保守しやすくするためにリファクタリングしよう：その２
+6分
+auth.jsからhandlers/validation.js,controllers/user.jsに切り分ける。
+exportsとuse,importをそれぞれ忘れずに。
+
+
+28. ログイン用APIを構築しよう
+4分
+controllers/user.jsに作成する。
+
+29. ログイン時のパスワードの照合をはじめよう
+4分
+パスワード照合には暗号化されたパスワードをdescryptしなければならない
+トークンも発行して、問題なかったらuser名とトークンを返す
+
+30. ログインAPIをPostmanでテストしてみよう
+4分
+
+いくつかエラーが出てたがちゃんとエラー文読んで解決してた。
+async await両方ちゃんとつけてるとか、if文でres.statusの前にreturnちゃんとつけてるとか。
+
+31. JWT認証APIってなに？
+3分
+何回もパスワード打たなくても24時間以内ならトークン発行して代わり認証してくれるやつ
+
+32. JWT認証APIを作ってみよう
+3分
+auth.jsに書くけど、それを検証するミドルウェアはhandlers/tokenHandle.jsに書く。
+JWT版のバリデーションチェックみたいなもん。
+
+33. JWTをデコード(複合)する関数を作成しよう
+5分
+reqのheaderに"authorization":bearer <token>となっているから、それを配列の形にして取り出す
+
+34. JWTをデコードするミドルウェアを完成させよう
+6分
+？
+encodeする時にidも作ったから、その一致するやつを探してくる。
+
+35. JWT認証APIをPostmanでテストしよう
+headersにkey,valueを入れて確かめた。
+
+ルートディレクトリをファイルパスの指定方法で書かない！
+ｘ　router.post("./verify-token", tokenHandler.verifyToken, (req, res) => {
+ok　router.post("/verify-token", tokenHandler.verifyToken, (req, res) => { 
+
+#セクション5: 【Notionアプリ開発】フロントエンド構築編(Reactを使用、ルーティング設定と認証ページの構築)
+
+36. Reactでフロントエンド側の開発環境を構築しよう
+3分
+37. React18からReact17のバージョンへダウングレードしよう
+3分
+38. 認証に関するコンポーネントを用意しよう
+3分
+client/src/components/layout/AuthLayout.jsx、
+client/src/pages/Login.jsx
+client/src/pages/Register.jsx
+上記三つ作成した。rafceのショートカットを使ってコンポーネントを作成。
+
+
+39. react-router-domでルーティング設定をはじめよう
+6分
+検索する時v6までのバージョンで検索すること。
+タグで囲うことでルーティングと表示することができる。
+BrowserRouterで囲うことでルーティングができる。
+outletを使うことで、AuthLayout.jsxの中にLogin.jsxとRegister.jsxを入れることができる。
+40. Material UIをインストールしよう
+5分
+マテリアルアイコンとか必要なモジュール等をインストールする。
+
+
+41. ThemeProviderを利用してアプリ全体のテーマを決定しよう
+6分
+ThemeProviderタグで囲うことで、アプリ全体のテーマを決定することができる。
+CSSBaselineを使うことで、全体のCSSをリセットすることができる。
+42. 認証に関する共通ページの構築をはじめよう
+6分
+client/src/components/layout/AuthLayout.jsx
+でcontainer,boxコンポーネント、画像を使って認証に関する共通ページのレイアウトを作成する。
+43. ユーザー新規登録用のページを作成しよう
+5分
+client/src/pages/Register.jsx
+入力フォームを作成する。
+boxとTextFieldコンポーネントを使って、ユーザー名とパスワードの入力フォームを作成する。
+
+
+44. 送信用ボタンとログイン遷移用のボタンを作成しよう
+5分
+submit属性のボタンを作成して、ユーザー新規登録の送信ボタンを作成する。
+遷移用のボタン<Button component={Link} to="/login">
+
+45. Axiosインスタンスを導入してAPIを叩く下準備をはじめよう
+5分
+axiosとはクライアントからAPIを叩くためのライブラリ。
+createでインスタンスを作成して、baseURLを設定する。
+46. Axios interceptorsを利用してリクエストの前処理を設定してみよう
+6分
+configを使ってリクエストの前処理を設定する。authorizationヘッダーにトークンを設定する。
+これでリクエストする時にトークンを自動的にヘッダーに設定することができる。
+
+47. Axios interceptorsを利用してレスポンスの前処理を設定してみよう
+2分
+errorをキャッチして、レスポンスの前処理を設定する。
+
+48. 認証用APIファイルを用意しておこう
+4分
+認証用のAPIをまとめるauthApi.jsファイルを作成する。
+
+authAPIオブジェクトのregisterメソッドでaxiosClient.postを使ってユーザー新規登録APIを叩く。(serverサイドで作ったauth/register エンドポイントを叩く)
+49. フォームから名前やパスワードを取得してみよう
+6分
+onsubmitイベントを使って、フォームから名前やパスワードを取得する。
+FormDataをnewして、event.targetからフォームのデータを取得する。
+submitはpreventDefault()を使って、ページ遷移を防ぐ。
+50. 実際にユーザー新規登録APIを叩いてユーザー登録してみよう
+8分
+???
+authApi.registerを使って、ユーザー新規登録APIを叩く。
+成功したら、ローカルストレージにトークンを保存。
+
+51. CORSエラーを回避する方法
+5分
+CORSエラーとは、クライアントとサーバーが異なるオリジンにある場合に発生するセキュリティ制限。
+corsライブラリをserverにインストールして、app.use(cors())を使ってCORSを有効にする。
+
+52. APIを叩くときに404 not foundになったときの対処方法
+6分
+エンドポイントとエラー番号を確認する。
+404だとほぼ　パスミスだからエンドポイントを確認する。
+server/src/v1/routes/index.js
+で、auth.jsをインポートして、app.use("/auth", authRoutes)を使って、authエンドポイントを設定する。
+
+53. 新規登録フォーム入力時のバリデーションチェックをしよう：その１
+7分
+バリデーション用のやつをusestateで作成する。
+textfieldにhelpertextを使って、バリデーションエラーを表示する。
+
+54. エラーがはっきりと分かるように修正しよう
+3分
+error属性がtrueになるとtextfieldの色が赤くなる。
+それぞれのバリデーション変数がtrueのときにerrorをtrueにする
+error={confirmErrText !== ""}
+55. 新規登録フォーム入力時のバリデーションチェックをしよう：その２
+5分
+再生
+56. 送信時のローディング設定をしよう
+4分
+ローディング状態をuseStateで管理する。
+LoadingButtonコンポーネントを使って、loading属性にローディング状態を設定する。
+
+57. ユーザー作成が完了したらホームにリダイレクトさせよう
+2分
+useNavigateフックを使って、ユーザー作成が完了したらホームにリダイレクトする。
+useNavigate()を使って、navigate("/")でホームにリダイレクトする。
+
+58. 【修正】ローカルストレージにトークンが設定されてない問題を修正しよう
+3分
+axiosClientのresponse.dataのようにトークンを取得して、
+localStorage.setItem("token", response.data.token)でローカルストレージに保存する。
+59. ログインページを作成しよう
+3分
+register.jsxを移植して、register部分を削除したりする。
+
+60. ログイン用APIを準備して叩いてみよう
+5分
+client/src/api/authApi.js
+Login用のメソッド追加
+Login.jsxのエラー部分。
+          setUsernameErrText(err.msg);
+          server/src/v1/controllers/user.js
+          のエラー返却部分のオブジェクトだったのを配列で返す。
+
+61. クライアントがすでにJWTを持っているかチェックするロジックを作ろう
+4分
+client/src/components/layout/AuthLayout.jsx
+の中にuseEffectを使ってnavidateをするたびにチェックさせる。
+チェックのロジックはclient/src/utils/authUtils.jsに書いていく
+62. JWTチェック用ファイルを完成させよう
+4分
+client/src/api/authApi.jsでtokenをチェックするAPIを叩くメソッドを作る。
+client/src/utils/authUtils.jsにauthApi.verifyTokenを使ってトークンをチェックする関数を作成する。
+JWTがあればuser情報を返す。
+63. 実際にJWTチェックでリダイレクトされる実装をしよう
+
+上のメソッドをcheckauthで使う。trueだったらnavigate("/")でホームにリダイレクトする。
+
+#セクション6: 【Notionアプリ開発】フロントエンド構築編(Notion画面、サイドバー、Redux、メモAPIの構築)
+64. Notion本体の機能実装をするためのルーティング設定をはじめよう
+3分
+AppLayout共通コンポーネント,Homeペrージズのルーティング設定
+65. AppLayoutでNotionアプリ共通コンポーネントを作成しよう
+4分
+boxコンポーネントでsidebar共通コンポーネントを囲う。Outletを使って、Homeコンポーネントを表示する。
+66. サイドバーを作ってみよう：その１
+6分
+Drawerコンポーネントを使ってサイドバーを作成する。
+DrawerコンポーネントはMaterial UIのコンポーネントで他にもログアウトようのアイコンとかも使う。
+67. サイドバーを作ってみよう：その２
+3分
+ListItemButtonコンポーネントを複製してお気に入り、プライベートボタンを作成
+
+68. サイドバーの背景色を変更してみよう
+3分
+client/src/assets/index.jsにカラーの設定をして、Sidebarコンポーネントのsxプロパティで背景色を設定する。
+
+69. ページからログアウトする機能を実装しよう
+2分
+<LogoutOutlinedIcon />のIconButtonコンポーネントにonclickイベントを追加して、ログアウト処理を実装する。
+ログアウト処理はlocalStorageからトークンを削除して、ログインページにリダイレクトする。
+
+70. ユーザー管理用にReduxを実装しよう
+5分
+reduxインストール、src/redux/sotre.jsを作成して、configureStoreを使ってストアを作成する。
+71. userSliceを実装しよう
+5分
+client/src/redux/features/userSlice.js
+でcreateSliceを使って、ユーザー情報を管理するスライスを作成する。
+それをstore.jsでインポートして、ストアに追加する。
+
+72. グローバルにユーザー管理ができるようにしよう
+2分
+src/index.jsでProviderコンポーネントでAppコンポーネントをラップしてストアをアプリ全体に提供する。
+
+73. useDispatchとuseSelectorを使ってユーザー保存と取り出しをはじめよう
+5分
+useDispatchフックを使って、ユーザー情報を保存するアクションを送る。
+useSelectorフックを使って、ユーザー情報を取り出す。
+useSelectorを使って、ユーザー情報を取得して現在ログインしているユーザ名を表示させる。
+？ちょっとよくわからない。
+
+74. 仮置きでメモを追加してみよう
+3分
+ハードコーディングでメモを追加していく。
+component={Link} to=""これで遷移できる
+
+75. Notionメモ用のスキーマを作成してみよう
+5分
+user.jsと同じようにserver/src/v1/models/memo.jsを作成して、メモのスキーマを作成する。
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // ユーザーIDを参照する
+
+76. 【※追加修正】Schemaをインポートしよう
+ながいから変数に定義
+
+77. メモ新規作成APIを作ってみよう
+5分
+server/src/v1/controllers/memo.js
+でメモ新規作成APIを作成する。
+positionの位置ををmemoCountから設定する。
+78. メモAPI用ルーティング設定をしよう
+3分
+server/src/v1/routes/memo.js
+にメモAPIのルーティングを設定する。
+  
+79. Homeコンポーネントを完成させよう
+
+pages/Homeで新規作成ボタンにloadingプロパティを追加。
+
+#セクション7: 【Notionアプリ開発】フロントエンド構築編(メモAPI/データフェッチング)
+
+再生
+80. 実際にメモ作成APIを叩いてメモを作成してみよう
+6分
+client/src/api/memoApi.jsを作って
+client/src/pages/Home.jsxで叩く。それでメモを作成する。詳細ページに遷移する。
+navigate(`/memo/${res._id}`);で遷移したけど、resオブジェクトの形どうなってるかわからん。
+81. サイドバーの横にメモ専用ページを表示してみよう
+3分
+Memoコンポーネントを作成して、サイドバーの横に表示する。
+client/src/components/common/Sidebar.jsxの📝仮置きのメモに遷移する。
+client/src/App.jsでMemoコンポーネントをインポートして、ルーティング設定をする。
+
+82. ログインしているユーザーが作成したメモを全て取得するAPIを構築しよう
+4分
+server/src/v1/controllers/memo.jsにメモ取得APIロジックを構築。
+server/src/v1/routes/memo.jsでルーティング設定
+client/src/api/memoAPI.jsでAPIリクエスト関数getAllを作成。
+
+83. APIを叩いてDBにあるメモを取得してみよう
+4分
+useEffectで初期描画した時にgetAllApi叩いて取得。
+84. Reduxでメモをグローバルで管理できる状態にしよう
+4分
+client/src/redux/features/memoSlice.jsを作成し、client/src/redux/store.jsでreducer定義
+client/src/components/common/Sidebar.jsxで
+dispatch(setMemo(res))で登録して、,useSelectorを使ってmemosに取得。
+レンダリングの問題で描画はできていないけど開発者ツールで見ると取得はできてるみたい。
+
+85. メモをmap関数で全てサイドバーに出力してみよう
+5分
+client/src/components/common/Sidebar.jsx
+ListItemButtonコンポーネントをmapで囲って出力。
+
+86. メモを選択したらハイライトする機能を実装しよう
+4分
+  const { memoId } = useParamsで取得して、
+const activeIndex = memos.findIndex((e) => e._id === memoId);
+でクリックしたメモのインデックスを取得して、setActiveIndex(activeIndex)でアクティブなメモを設定する。
+ListItemButtonコンポーネントのselectedプロパティにactiveIndexとindexを比較して、trueにする。
+
+
+87. １つのメモを選択して中身を取り出すAPIを構築しよう
+4分
+server/src/v1/controllers/memo.jsでgetOneMemo関数を作成する。
+paramsからmemoIdを取得して、findOne関数でuser,_idの一致する値を取得する。
+server/src/v1/routes/memo.jsでルーティング設定をする。
+88. Memoコンポーネントを作成しよう
+5分
+deleteIcon,starIconを使って、Memoコンポーネントを作成する。
+無題と追加のテキストフィールドを作成する。
+89. MUIのテキストフォームの修正をしてみよう
+4分
+MUIのcss修正はsxプロパティを使う。
+".MuiOutlinedInput-input": { padding: 0 }のようにクラスを上書きする。
+
+90. １つのメモ情報を取得するAPIを叩いてみよう
+7分
+useeffectでmemoIdを取得して、memoApi.getOne(memoId)を叩く。
+501エラーが出たので、server/src/v1/controllers/memo.jsのgetOneMemo関数でawaitを忘れていたので追加。
+
+91. 実際にメモのタイトルと詳細を出力してみよう
+3分
+resで取得したメモのタイトルと詳細をusestateで管理して、テキストフィールドにvalue属性を設定することで表示する。
+
+92. メモ内容更新用APIを構築してみよう
+5分
+server/src/v1/controllers/memo.jsでupdateMemo関数を作成する。
+paramsからmemoIdを取得して、findByIdAndUpdate関数で更新する。
+const updatedMemo = await Memo.findByIdAndUpdate(memoId, {
+  // $setは「指定したフィールドだけを新しい値にする」ためのMongoDBの機能です。
+      $set: req.body,
+    });
+
+93. APIを叩いてメモ内容を更新してみよう
+3分
+onchangeで書くたびに発火させて、
+memoApi.update(memoId, { title, detail })を叩いて、メモ内容を更新する。
+？sidebarのメモタイトルが更新されない。→api叩く時にputメソッドじゃなくてgetメソッドだった。
+
+94. 時間を空けてAPIを叩く処理を追加してみよう
+4分
+clearTimeoutを使って、時間を空けてAPIを叩く処理を追加する。
+setTimeoutを使って、0.5秒以内に書いたらタイマー0にして、
+updateAPIを叩くようにする。
+
+95. メモを削除するAPIを構築してみよう
+5分
+server/src/v1/controllers/memo.jsでdeleteMemo関数を作成する。
+paramsからmemoIdを取得して、deleteOne関数で削除する
+server/src/v1/routes/memo.jsでルーティング設定をする。
+client/src/api/memoApi.jsでdeleteメソッドを作成する。 
+
+96. 削除したらメモ状態を更新してリダイレクトさせよう
+5分
+削除してメモが0になった場合とそうでない場合のリダイレクト、
+削除してnewMemosを現在削除したmemoIdでないので作成し直して、それをdispatchして、メモ一覧を更新する。
+
+97. ＋ボタンでメモを新規追加してみよう
+4分
+client/src/components/common/Sidebar.jsxで＋ボタンをクリックしたら、
+memoApi.createを叩いて新規メモを作成する。
+成功したら、作成したメモをメモ一覧に追加して更新して、dispatchでグローバルに反映して、サイドバーに新規メモを追加する。
+useNavigateで新規メモの詳細ページに遷移する。
+
+#セクション8: 【Notionアプリ開発】フロントエンド構築編(絵文字ピッカー編)
+
+98. 絵文字ピッカー用のコンポーネントを作成しよう
+3分
+common/EmojiPicker.jsxを作成して、
+getMemoで取得したメモの絵文字をuseStateで管理して、EmojiPickerコンポーネントにiconプロパティで渡す。
+propsでiconを受け取る。
+client/src/pages/Memo.jsxでEmojiPickerコンポーネントをインポートして
+Boxコンポーネントの中に追加する。
+
+99. 絵文字アイコンの大きさ等を修正しよう
+3分
+EmojiPicker.jsxでsxプロパティを使って、アイコンの大きさや色を修正する。
+propsで絵文字変更できるようにして、useStateで管理,useEffectで絵文字を更新する。
+100. 絵文字アイコン用のライブラリをインストールしてみよう
+4分
+import Picker from "emoji-picker-react";
+で絵文字選べるようにする。でdisplay:noneで非表示にしておく。
+
+101. 絵文字をクリックしてピッカーの表示・非表示を実装しよう
+4分
+showPicker関数でisShowPickerフラグを反転させる。ことでクリックでピッカーの表示・非表示を切り替える。
+position: "absolute",zIndex: 100,で他のタイトルや本文要素を無駄に下に移動させたりしないようにする。
+
+102. 絵文字コードから絵文字アイコンを取り出してみよう
+7分
+emoji-picker-reactのonEmojiClickイベントを使って、絵文字をクリックした時に絵文字コードを取得する。
+-で複数取得できるのもあるからそれぞれをforeachで回して、
+String.fromCodePointを使って絵文字コードから絵文字アイコンを取り出す。
+
+103. 変更した絵文字にメモのアイコンを更新しよう
+6分
+
+？ちょっとここ曖昧。
+propsで絵文字の情報を受け取って
+client/src/pages/Memo.jsxにonIconChange関数を作成して、iconの更新が行われたら、memoApi.updateを叩いてメモのアイコンを更新する。
+成功したら、setIconでアイコンを更新する。
