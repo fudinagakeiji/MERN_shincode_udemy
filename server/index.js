@@ -10,15 +10,25 @@ mongoose.set("strictQuery", true);
 const app = express();
 // サーバーが待ち受けるポート番号を指定
 const PORT = 5003;
+
 // .envファイルに記載した環境変数をprocess.envへ読み込む
 require("dotenv").config();
+
+// JSON形式のリクエストボディを解析してreq.bodyへ格納するミドルウェアを登録
+app.use(express.json());
+
+// 認証系のルーティング定義を/api/v1配下にマウントする
+app.use("/api/v1/", require("./src/v1/routes/auth.js"));
+
 // DB接続
 // DB接続処理でエラーが出てもアプリが落ちないようにtry/catchで囲む
+// MongoDB接続処理を実行しながら例外を捕捉する
 try {
   // MongoDB Atlasの特定クラスタに接続する
   mongoose.connect(process.env.MONGO_URL);
   // 接続試行が実行されたタイミングでログを表示
   console.log("DBと接続中");
+  // 接続に失敗した際にエラーオブジェクトを受け取る
 } catch (error) {
   // 例外発生時の情報をコンソールに出力
   console.log(error);

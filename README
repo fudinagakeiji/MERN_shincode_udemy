@@ -12,7 +12,7 @@ https://github.com/Shin-sibainu/notion-clone-client
 バックエンド答え
 https://github.com/Shin-sibainu/notion-clone-server
 
-セクション3: 【Notionアプリ開発】バックエンド構築編(Node.jsとMongoDBを使用)
+#セクション3: 【Notionアプリ開発】バックエンド構築編(Node.jsとMongoDBを使用)
 再生
 8. Expressフレームワークを使ってローカルサーバーを構築しよう
 node -v 16.16.0,npm -v 8.11.0
@@ -36,10 +36,95 @@ mongoose.connectでMongoDBと接続している。
 MongoDBの接続情報をそのままGitにあげるのは危ないから環境変数として.envファイルに移しておく。
 require(dotenv).configで読み込んで、process.env.MONGO_URLで呼び出す
 
+#セクション4: 【Notionアプリ開発】WebAPI構築編(新規登録、ログイン、JWTトークン発行)
+15. ユーザー新規登録API作成の流れ
+メールパスワード入力→バリデーションチェック→存在重複確認→PW暗号化→DB保存→JWT発行
+16. 早速WebAPIを作成してみよう
+postメソッドで作るよ。req.body.passwordで取得するよ。
+https://www.npmjs.com/package/crypto-js#aes-encryption
+CryptoJSのAES方式でパスワード暗号化するよ
+訂正:
+- `req.body.password`を扱うには`app.use(express.json())`等のボディパーサーが不可欠です。実装では`server/index.js`でJSONパーサーを有効化していることを確認しておきましょう。
+- 依存関係として導入している暗号化ライブラリはnpmパッケージ`crypto-js`です。`require(\"crypto-js\")`で読み込む必要があり、README記載の`CryptoJS`という名前は便宜上の呼称に留めるか、モジュール名に合わせましょう。
 
+17. パスワードを暗号化してユーザーをDBに保存してみよう
+https://mongoosejs.com/docs/models.html#constructing-documents
+モデルをrequireしてそれにmongooseのcreate関数で登録する。
+18. JWTってなに？どの場面で使うの？
+JSON Web Token サーバで発行する。ログイン時に一度発行したらクライアントに渡す。複数回ログインしなくてもJWTで認証できる仕組み。
+19. JWTをクライアント側に発行してみよう
+https://www.npmjs.com/package/jsonwebtoken#jwtsignpayload-secretorprivatekey-options-callback
+jsonwebtokenをrequireしてそれのsign()関数にuserid,jwtのシークレットキー、期限切れとかの設定を引数に渡す
+新規登録APIが成功したらres.statusに200と、モデルとトークンを返却する、失敗したら500とエラーを返却
+20. Postmanをインストールしよう
+21. PostmanでWebAPIテストをしてみよう
+postメソッドでbodyにusername,password入れてsendした。
+返却値はpwは暗号化されてたidもちゃんと作られてた、tokenも長いのが入ってた、
+22. express-validatorを使ってバリデーションチェックをはじめよう
+https://express-validator.github.io/docs/6.14.0/
+express-validatorをrequireして新規登録APIのapp.postの第二引数にbody関数を差し込む。
+bodyにisLengthとかwithMessageとかでバリデーションの項目を追加していく
+23. すでにDBにユーザーが存在している場合のエラーハンドリング
+公式のcustom-error-messageから、findOneメソッドで新規登録項目とDBに重複がないかチェックするバリデータを作成する。
+すでに存在していたらPromise.rejectを返却する。
+24. バリデーションエラーを出力する機能を実装しよう
+これまでに書いたバリデーションをvalidationResult関数から取得してres.statusに乗せて返却する。
+next()関数はうまくいかないとそこで止まるようにミドルウェア使う時には必須の関数。
+訂正:
+- `next()`は自動で「うまくいかないと止まる」ものではなく、バリデーション成功時に開発者が明示的に呼び出して後続ミドルウェアへ処理を渡す関数です。エラーがあればレスポンスを返して終了し、問題なければ`next()`で次へ進めましょう。
+25. 正常にバリデーションチェックができているかテストしてみよう
+ブラウザのMongoDBproject>clasters>DataExplolerで見れる。
+26. 運用・保守しやすくするためにリファクタリングしよう：その１
+27. 運用・保守しやすくするためにリファクタリングしよう：その２
+server/index.jsにexpress本体とかmongooseとか基本のやつ。
+useで認証周りのauth.jsを呼んでる。
+server/src/v1/routes/auth.jsに新規登録API
+routes/auth.jsから/src/v1/handlers/validation.jsにバリデーション周りを引っ越し
+routes/auth.jsから/src/v1/controllers/user.jsにユーザ認証周りを引っ越し
 
+| ディレクトリ           | 役割（ざっくり）                         |
+| ---------------- | -------------------------------- |
+| **controllers/** | APIの「処理の本体」。登録・ログインなどのロジックを書く場所  |
+| **handlers/**    | 共通の処理（バリデーションチェックなど）をまとめる場所      |
+| **models/**      | MongoDB（データベース）のスキーマ（設計図）を定義する場所 |
+| **routes/**      | URL とコントローラーをつなぐ「受付・振り分け」        |
+| **index.js**     | サーバーの入口。Express の初期設定・ルート読み込み    |
+| **.env**         | 秘密鍵やDB接続文字列を保存                   |
 
+[クライアント]
+    |
+POST /api/v1/auth/register
+    |
+▼ routes/auth.js（受付）
+    |
+▼ handlers/validation.js（バリデーションチェック）
+    |
+▼ controllers/user.js（登録ロジック実行）
+    |
+▼ models/user.js（DBへ保存）
+    |
+▼ MongoDB（永続化）
+訂正:
+- 現状の`server/index.js`では`app.use(\"/api/v1/\", require(\"./src/v1/routes/auth\"))`としているため、実際のエンドポイントは`/api/v1/register`および`/api/v1/login`です。`/auth`プレフィックスは付与されていない点に注意してください。
 
+28. ログイン用APIを構築しよう
+routes,controllersを作成
+29. ログイン時のパスワードの照合をはじめよう
+controllersでcrypto-jsを使ってパスワード照合、OKだったらJWTを発行して201statusとuser,tokenを返却
+
+30. ログインAPIをPostmanでテストしてみよう
+ちゃんと全部のパターンで確かめる。
+username,passwordそれぞれのバリデーションが機能していること。controllerで「無効です」を返すためにreturn忘れないでね。アプリがクラッシュしちゃう。
+31. JWT認証APIってなに？
+一度ログイン認証したことある人に発行する。何回もログインし直さなくても、DBまで行かなくてもサーバーでJWTを確認するだけで済む。
+32. JWT認証APIを作ってみよう
+"/verify-token"をroutes/auth.jsに作る、認証するミドルウェアをhandlers/tokenHandlers.jsに作る
+33. JWTをデコード(複合)する関数を作成しよう
+jwtのbearerのあとのトークンを取り出すためにsplitして取り出す。複合はJWT.verifyで行う。
+34. JWTをデコードするミドルウェアを完成させよう
+UserモデルとtokenDecodeの返却値をfindByIdで突き合わせる。
+35. JWT認証APIをPostmanでテストしよう
+POSTメソッドのheaders、keyはauthorization,valueはbearerにloginした時のtokenをくっつける。
 
 
 
