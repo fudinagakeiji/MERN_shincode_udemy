@@ -127,4 +127,77 @@ UserモデルとtokenDecodeの返却値をfindByIdで突き合わせる。
 POSTメソッドのheaders、keyはauthorization,valueはbearerにloginした時のtokenをくっつける。
 
 
-
+#セクション5: 【Notionアプリ開発】フロントエンド構築編(Reactを使用、ルーティング設定と認証ページの構築)
+36. Reactでフロントエンド側の開発環境を構築しよう
+37. React18からReact17のバージョンへダウングレードしよう
+38. 認証に関するコンポーネントを用意しよう
+client/src/components/layout/AuthLayout.jsx
+client/src/pages/Login.jsx
+client/src/pages/Register.jsx
+39. react-router-domでルーティング設定をはじめよう
+BrowserRouter><Routes><Route/>のようにして囲う
+親コンポーネントにoutletつけることで親が常に表示される。AuthLayoutが親なので共通するレイアウトに使える。
+40. Material UIをインストールしよう
+https://mui.com/material-ui/material-icons/?selected=AccessAlarm
+インポートしたコンポーネントを使うだけでアイコンが使える。
+41. ThemeProviderを利用してアプリ全体のテーマを決定しよう
+createTheme関数でテーマを決めてcssbaselineでcssリセットしてThemeProviderで囲うとテーマが適用される。
+42. 認証に関する共通ページの構築をはじめよう
+Conteiner,boxコンポーネントでcss整えた。　
+.imgをインポートしたらそれsrcに直接入れられた。
+43. ユーザー新規登録用のページを作成しよう
+Boxコンポーネントにcomponent="form"属性をつける、Textfieldコンポーネントを利用する。
+44. 送信用ボタンとログイン遷移用のボタンを作成しよう
+react-router-domのLinkとtoを使って遷移できる。
+45. Axiosインスタンスを導入してAPIを叩く下準備をはじめよう
+https://axios-http.com/docs/req_config
+46. Axios interceptorsを利用してリクエストの前処理を設定してみよう
+https://axios-http.com/docs/interceptors
+？getTokenでlocalStorageのJWTを取得する、axiosのinterseptersでheaderに何送るか設定している？
+訂正:
+- Axiosの`request`インターセプターは必ず変更後の`config`オブジェクト自体を返す必要があります。`client/src/api/axiosClient.js`では`config.headers`を書き換えたうえで`config`をそのまま返しており、この形でないとAxiosがリクエストを発行できない点に注意してください。
+47. Axios interceptorsを利用してレスポンスの前処理を設定してみよう
+responseは正常だとresponse返して、エラーだとerr.response返す。
+48. 認証用APIファイルを用意しておこう
+client/src/api/authApi.jsを作って、ここでserverで作った新規登録APIを呼ぶ。
+49. フォームから名前やパスワードを取得してみよう
+onSubmitで送る。new Formdataを使ってnameをgetする。
+50. 実際にユーザー新規登録APIを叩いてユーザー登録してみよう
+？？try catchで新規登録APIをclient/src/pages/Register.jsxのhandleSubmitから叩く。
+authApi.registerメソッド使って、その後localstorageにトークン保存する？
+51. CORSエラーを回避する方法
+clientとserverのポート番号が違うとCORSエラーになる。
+corsのnpmパッケージを使う。
+52. APIを叩くときに404 not foundになったときの対処方法
+パスを確認。http://localhost:5003/api/v1/auth/registerをclientで叩いてる。
+serverのindexでroute/index.jsに飛ぶ、同階層のauth.jsに飛ぶそこの/registerを叩く。
+サーバのroute/index.jsとクライアントの叩く先pages/Register.jsのhandlesubmit→authApi→axiosClientでパス決まってる。
+53. 新規登録フォーム入力時のバリデーションチェックをしよう：その１
+エラーテキストをuseStateで管理して、エラー状態をlet errorで定義して、
+if文でテキストフィールドが空の時、パスワードが確認用と異なる時で出し分ける。helperTextでそれぞれ表示させる。
+boxコンポーネントにnoValidateプロパティでhelperTextの表示の仕方を変える。
+54. エラーがはっきりと分かるように修正しよう
+プロパティにエラーが存在する時赤くする。
+error={usernameErrText !== ""}
+55. 新規登録フォーム入力時のバリデーションチェックをしよう：その２
+axiosClientでエラーをthrowしてなくてclient/src/pages/Register.jsxでcatchできてなかった。
+err.data.errorsの配列のparamでusernameとかそれに合わせてmsgをsetUsernameErrTextとかして
+server側のバリデーションチェックも入れた。
+56. 送信時のローディング設定をしよう
+loadingをstateで管理して、フォームと作成ボタンをtrueにさせる、API走った後にtryでもcatchでもfalseにする。
+57. ユーザー作成が完了したらホームにリダイレクトさせよう
+react-router-domのuseNavigate();を使って作成完了時にnavigate("/")でリダイレクトさせる。
+58. 【修正】ローカルストレージにトークンが設定されてない問題を修正しよう
+axiosClient.interceptors.response.useの時の正常な時にresponse.dataを返す。
+59. ログインページを作成しよう
+Registerをコピーして確認用パスワード部分削除
+60. ログイン用APIを準備して叩いてみよう
+client/src/api/authApi.jsでAPI呼び出し関数loginを定義
+catchした時undefinedなのでcatchの形とerrorを定義してる名前と形を確認する。
+server/src/v1/controllers/user.jsの返却の値を確認する。
+"errors"を配列で囲って、paramプロパティの中を変えて、messageプロパティをmsgにした。
+61. クライアントがすでにJWTを持っているかチェックするロジックを作ろう
+login,registerの共通箇所client/src/components/layout/AuthLayout.jsxでnavigate使われる時に感知する仕組みを作る。
+62. JWTチェック用ファイルを完成させよう
+client/src/utils/authUtils.jsでトークンgetしてtryしたらauthApiでAPI呼ぶ
+63. 実際にJWTチェックでリダイレクトされる実装をしよう

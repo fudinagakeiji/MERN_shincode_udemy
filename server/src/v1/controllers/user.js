@@ -47,10 +47,12 @@ exports.login = async (req, res) => {
     // ユーザーが存在しない場合は401エラーを返却
     if (!user) {
       return res.status(401).json({
-        erros: {
-          param: "username",
-          message: "ユーザ名が無効です",
-        },
+        errors: [
+          {
+            param: "username",
+            msg: "ユーザ名が無効です",
+          },
+        ],
       });
     }
     // この先でパスワード照合やトークン発行を実装予定
@@ -64,10 +66,12 @@ exports.login = async (req, res) => {
     // 入力されたパスワードと復号結果が一致しない場合は401を返す
     if (descriptedPassword !== password) {
       return res.status(401).json({
-        erros: {
-          param: "username",
-          message: "パスワードが無効です",
-        },
+        errors: [
+          {
+            param: "password",
+            msg: "パスワードが無効です",
+          },
+        ],
       });
     }
 

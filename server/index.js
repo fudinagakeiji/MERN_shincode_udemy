@@ -14,11 +14,15 @@ const PORT = 5003;
 // .envファイルに記載した環境変数をprocess.envへ読み込む
 require("dotenv").config();
 
+// ブラウザからのクロスオリジンアクセスを許可するcorsミドルウェアを読み込む
+const cors = require("cors");
+// クライアント開発環境からのアクセスを許可する
+app.use(cors({ origin: "http://localhost:3000" }));
 // JSON形式のリクエストボディを解析してreq.bodyへ格納するミドルウェアを登録
 app.use(express.json());
 
 // 認証系のルーティング定義を/api/v1配下にマウントする
-app.use("/api/v1/", require("./src/v1/routes/auth.js"));
+app.use("/api/v1/", require("./src/v1/routes"));
 
 // DB接続
 // DB接続処理でエラーが出てもアプリが落ちないようにtry/catchで囲む
