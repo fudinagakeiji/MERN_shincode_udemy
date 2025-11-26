@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { LoadingButton } from "@mui/lab";
 // 画面遷移リンクを描画するためのコンポーネントを読み込む
 import { Link, useNavigate } from "react-router-dom";
+// 認証API呼び出し用のラッパー
 import authApi from "../api/authApi";
 const Register = () => {
   // 認証後の画面遷移に利用する
@@ -51,7 +52,7 @@ const Register = () => {
 
       setLoading(false);
       // ログイン成功時のJWTを保存し、以降のAPIで利用
-      localStorage.setItem("token", res.token);
+      localStorage.setItem("token", res.data.token);
       console.log("ログインに成功しました");
       navigate("/");
     } catch (err) {

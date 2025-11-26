@@ -12,6 +12,10 @@ import { createTheme, ThemeProvider } from "@mui/material";
 import Login from "./pages/Login";
 // 新規登録ページコンポーネントを読み込む
 import Register from "./pages/Register";
+// 認証後ページの共通レイアウト
+import AppLayout from "./components/layout/AppLayout";
+// メモ作成ボタンを表示するホーム画面
+import Home from "./pages/Home";
 function App() {
   // アプリ全体で利用するカスタムMUIテーマを定義する
   const theme = createTheme({
@@ -34,6 +38,11 @@ function App() {
             <Route path="/login" element={<Login />} />
             {/* /register で登録画面を表示 */}
             <Route path="/register" element={<Register />} />
+          </Route>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Home />} />
+            {/* /register で登録画面を表示 */}
+            <Route path="memo" element={<Home />} />
           </Route>
         </Routes>
       </BrowserRouter>

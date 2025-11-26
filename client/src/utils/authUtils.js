@@ -12,10 +12,9 @@ const authUtils = {
     try {
       // サーバーへ検証リクエストを送り、ユーザー情報を取得
       const res = await authApi.verifyToken();
-      console.log(res, "authutils-res");
 
       // 正常に検証できた場合はユーザー情報を返す
-      return res.user;
+      return res.data.user;
     } catch {
       // 例外時は未認証扱いにする
       return false;

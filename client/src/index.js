@@ -6,10 +6,16 @@ import ReactDOM from "react-dom";
 import "./index.css";
 // ルートコンポーネントを読み込む
 import App from "./App";
+// Reduxのstore本体をインポート
+import { store } from "./redux/store";
+// ReactアプリをReduxストアに接続するためのProvider
+import { Provider } from "react-redux";
 // StrictModeでアプリ全体をラップしつつroot要素へ描画する
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <App />
+    </Provider>
   </React.StrictMode>,
   document.getElementById("root")
 );

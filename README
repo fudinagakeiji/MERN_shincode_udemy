@@ -201,3 +201,45 @@ login,registerの共通箇所client/src/components/layout/AuthLayout.jsxでnavig
 62. JWTチェック用ファイルを完成させよう
 client/src/utils/authUtils.jsでトークンgetしてtryしたらauthApiでAPI呼ぶ
 63. 実際にJWTチェックでリダイレクトされる実装をしよう
+
+
+#セクション6: 【Notionアプリ開発】フロントエンド構築編(Notion画面、サイドバー、Redux、メモAPIの構築)
+64. Notion本体の機能実装をするためのルーティング設定をはじめよう
+client/src/App.jsにAppLayout,Homeコンポーネントをホームで描画させる。
+65. AppLayoutでNotionアプリ共通コンポーネントを作成しよう
+client/src/components/layout/AppLayout.jsxでAuthLayoutのロジックを移す。
+client/src/components/common/Sidebar.jsxを作成してAppLayoutで描画させる。
+66. サイドバーを作ってみよう：その１
+Drawer>List>ListItemButton>Typography,IconButton>LogoutIconのように作成
+67. サイドバーを作ってみよう：その２
+MUIiconで探そう。
+68. サイドバーの背景色を変更してみよう
+client/src/assets/index.jsで色を指定する。
+importしてbackgroundColor: assets.colors.secondaryのように利用する。
+69. ページからログアウトする機能を実装しよう
+localStorage.removeItem("token")でトークン外せる。
+useNavigateでログイン画面に遷移する。
+70. ユーザー管理用にReduxを実装しよう
+client/src/redux/store.jsを作る。configureStoreでstore定義する。
+71. userSliceを実装しよう
+initialStateは空なのでsetUserで定義してあげる。
+storeのreducerにuserSliceのuserReducerを格納してあげる。
+72. グローバルにユーザー管理ができるようにしよう
+client/src/index.jsにstoreとProviderをimportしてグローバル管理する。
+
+73. useDispatchとuseSelectorを使ってユーザー保存と取り出しをはじめよう
+client/src/components/layout/AppLayout.jsxで初期描画の時にdispatchで登録する。
+client/src/components/common/Sidebar.jsxでuseSelector使って取り出して使う。
+74. 仮置きでメモを追加してみよう
+ListItemButtonで新しく作る。component={Link}で飛ぶ。
+75. Notionメモ用のスキーマを作成してみよう
+server/src/v1/models/memo.jsを作成type: Schema.types.ObjectIdでユーザ判別用。
+76. 【※追加修正】Schemaをインポートしよう
+77. メモ新規作成APIを作ってみよう
+server/src/v1/controllers/memo.js作成
+？何やってるかちょっとわかんない
+78. メモAPI用ルーティング設定をしよう
+server/src/v1/routes/index.jsとserver/src/v1/routes/memo.jsを作成
+?
+79. Homeコンポーネントを完成させよう
+client/src/pages/Home.jsxにメモ作成ボタンを置いておく。

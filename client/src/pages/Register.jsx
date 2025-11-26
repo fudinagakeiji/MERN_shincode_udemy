@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { LoadingButton } from "@mui/lab";
 // 画面遷移リンクを描画するためのコンポーネントを読み込む
 import { Link, useNavigate } from "react-router-dom";
+// サーバーの認証APIをまとめたラッパー
 import authApi from "../api/authApi";
 const Register = () => {
   // 送信完了後に遷移させるためのナビゲータ
@@ -30,7 +31,6 @@ const Register = () => {
     const username = data.get("username").trim();
     const password = data.get("password").trim();
     const confirmPassword = data.get("confirmPassword").trim();
-    console.log(username, password, confirmPassword);
 
     let error = false;
     if (username === "") {
@@ -60,7 +60,7 @@ const Register = () => {
       });
       setLoading(false);
       // レスポンス本体に含まれるJWTを保存
-      localStorage.setItem("token", res.token);
+      localStorage.setItem("token", res.data.token);
       console.log("新規登録に成功しました");
       navigate("/");
     } catch (err) {

@@ -1,18 +1,22 @@
+/* ルートコンポーネントのデフォルト中央寄せ */
 .App {
   text-align: center;
 }
 
+/* Reactロゴの基礎サイズと挙動 */
 .App-logo {
   height: 40vmin;
   pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  /* ユーザーがアニメーション許可している場合にロゴを回転 */
   .App-logo {
     animation: App-logo-spin infinite 20s linear;
   }
 }
 
+/* 画面全体を覆うヘッダーレイアウト */
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -24,10 +28,12 @@
   color: white;
 }
 
+/* リンクテキストのブランドカラー設定 */
 .App-link {
   color: #61dafb;
 }
 
+/* ロゴ回転アニメーション定義 */
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
