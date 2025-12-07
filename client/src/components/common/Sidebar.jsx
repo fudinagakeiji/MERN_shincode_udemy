@@ -14,21 +14,66 @@ import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 // カラーパレットなどの共通アセット
 import assets from "../../assets/index";
 // ログアウト後の遷移やメモリンク生成に使う
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 // ユーザ情報をグローバルストアから取得
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+// メモリスト取得とアクティブ状態管理に使うReactフック
+import { useEffect, useState } from "react";
+// メモ関連APIクライアント
+import memoApi from "../../api/memoApi";
+// 取得したメモ一覧をReduxへ保存するアクション
+import { setMemo } from "../../redux/features/memoSlice";
 
 // アプリ共通のサイドバーコンポーネント
 const Sidebar = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  // Reduxへアクションを送るためのdispatch
+  const dispatch = useDispatch();
   // 画面遷移をさせるためのnavigate
   const navigate = useNavigate();
+  // URLから現在表示すべきmemoIdを取得
+  const { memoId } = useParams();
   // Reduxストアからログイン中のユーザーを取得
   const user = useSelector((state) => state.user.value);
 
+  // Reduxから全メモ一覧を取得
+  const memos = useSelector((state) => state.memo.value);
   // ローカルに保持しているトークンを削除してログイン画面へ遷移
   const logout = () => {
     localStorage.removeItem("token");
     navigate("/login");
+  };
+
+  // 初回レンダリング時にメモ一覧をAPIから取得
+  useEffect(() => {
+    const getMemos = async () => {
+      try {
+        const res = await memoApi.getAll();
+        dispatch(setMemo(res.data));
+      } catch (err) {
+        alert(err);
+      }
+    };
+    getMemos();
+  }, [dispatch]);
+
+  // URLパラメータやメモ一覧の変化に応じて選択状態を更新
+  useEffect(() => {
+    const activeIndex = memos.findIndex((e) => e._id === memoId);
+    setActiveIndex(activeIndex);
+  }, [memoId, memos]);
+
+  // メモ追加ボタン押下時に新規メモを作成し一覧へ反映
+  const addMemo = async () => {
+    try {
+      const res = await memoApi.create();
+      const memo = res.data;
+      const newMemos = [memo, ...memos];
+      dispatch(setMemo(newMemos));
+      navigate(`memo/${memo._id}`);
+    } catch (error) {
+      alert(error);
+    }
   };
   return (
     // 常時表示されるドロワー（固定幅250px）
@@ -96,19 +141,26 @@ const Sidebar = () => {
             <Typography variant="body2" fontWeight="700">
               プライベート
             </Typography>
-            <IconButton>
+            <IconButton onClick={() => addMemo()}>
               <AddBoxOutlinedIcon fontSize="small" />
             </IconButton>
           </Box>
         </ListItemButton>
-        {/* 仮のメモリンク */}
-        <ListItemButton
-          sx={{ pl: "20px" }}
-          component={Link}
-          to="/memo/yghaoiwluhga"
-        >
-          <Typography>📝仮置きのメモ</Typography>
-        </ListItemButton>
+        {/* DBから取得したメモを一覧表示 */}
+        {memos.map((item, index) => (
+          <ListItemButton
+            sx={{ pl: "20px" }}
+            component={Link}
+            to={`/memo/${item._id}`}
+            key={item._id}
+            selected={index === activeIndex}
+          >
+            <Typography>
+              {item.icon}
+              {item.title}
+            </Typography>
+          </ListItemButton>
+        ))}
       </List>
     </Drawer>
   );

@@ -243,3 +243,58 @@ server/src/v1/routes/index.jsとserver/src/v1/routes/memo.jsを作成
 ?
 79. Homeコンポーネントを完成させよう
 client/src/pages/Home.jsxにメモ作成ボタンを置いておく。
+
+#セクション7: 【Notionアプリ開発】フロントエンド構築編(メモAPI/データフェッチング)
+80. 実際にメモ作成APIを叩いてメモを作成してみよう
+client/src/pages/Home.jsxでAPI叩く。client/src/api/memoApi.jsを通す
+81. サイドバーの横にメモ専用ページを表示してみよう
+client/src/pages/Memo.jsx 
+82. ログインしているユーザーが作成したメモを全て取得するAPIを構築しよう
+server/src/v1/controllers/memo.jsでgetAllで取得、
+server/src/v1/routes/memo.jsでメモ取得
+83. APIを叩いてDBにあるメモを取得してみよう
+client/src/components/common/Sidebar.jsxでuseEffect使って
+memoApi.getAll()する。
+84. Reduxでメモをグローバルで管理できる状態にしよう
+client/src/redux/features/memoSlice.js
+client/src/redux/store.js
+client/src/components/common/Sidebar.jsxここでdispatchして登録する。
+85. メモをmap関数で全てサイドバーに出力してみよう
+mapで描画
+86. メモを選択したらハイライトする機能を実装しよう
+react-router-domのuseParamsでparamsを取得、memoIdを取得してListItemButtonのselectedをtrueにする処理を追加する。
+
+87. １つのメモを選択して中身を取り出すAPIを構築しよう
+server/src/v1/routes/memo.jsでルーティング
+server/src/v1/controllers/memo.jsでgetOne,findOne使って取得
+88. Memoコンポーネントを作成しよう
+client/src/pages/Memo.jsxこれを書いていく
+
+89. MUIのテキストフォームの修正をしてみよう
+MuiOutlinedInput-inputなどMUIのclassを直接変更する。
+
+90. １つのメモ情報を取得するAPIを叩いてみよう
+client/src/pages/Memo.jsxにuseParamsでいまのメモID取得して、getOneAPIを叩く。
+
+91. 実際にメモのタイトルと詳細を出力してみよう
+title,descriptionをstateで保持して、resで取得した値をstate更新関数で代入、コンポーネントのvalueにstateを代入
+
+92. メモ内容更新用APIを構築してみよう
+server/src/v1/controllers/memo.jsにupdateのAPIを作成、
+server/src/v1/routes/memo.jsでputで更新する
+client/src/api/memoApi.jsでidとparamsを引数に取る。paramsで更新内容を受け取る。
+93. APIを叩いてメモ内容を更新してみよう
+onchangeでupdateTitle関数を呼ぶと、setTitleにe.target.valueを入れて、memoApi.updateで保存する。
+94. 時間を空けてAPIを叩く処理を追加してみよう
+updateTitle関数内でclearTimeoutで秒数リセット、その中でsetTimeoutで0.5秒ごとにmemoApi.updateを叩くようにする。
+95. メモを削除するAPIを構築してみよう
+server/src/v1/controllers/memo.jsにdeleteのAPIを作成、
+server/src/v1/routes/memo.jsでdeleteで更新する
+client/src/api/memoApi.jsでidを引数に取る。
+
+96. 削除したらメモ状態を更新してリダイレクトさせよう
+memos.filterでメモのモデルを並び替えて、setMemosで状態更新する。
+urlはnavigateで更新する。
+97. ＋ボタンでメモを新規追加してみよう
+client/src/components/common/Sidebar.jsxに
+memoApi.create()で取得したのをdataのところだけ取り出す。そうじゃないとaxiosのレスポンス全体が入ってしまって警告が出る。

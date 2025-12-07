@@ -16,6 +16,8 @@ import Register from "./pages/Register";
 import AppLayout from "./components/layout/AppLayout";
 // メモ作成ボタンを表示するホーム画面
 import Home from "./pages/Home";
+// 個別メモ編集ページ
+import Memo from "./pages/Memo";
 function App() {
   // アプリ全体で利用するカスタムMUIテーマを定義する
   const theme = createTheme({
@@ -40,9 +42,12 @@ function App() {
             <Route path="/register" element={<Register />} />
           </Route>
           <Route path="/" element={<AppLayout />}>
+            {/* ルート直下はメモ作成ボタンを表示 */}
             <Route index element={<Home />} />
-            {/* /register で登録画面を表示 */}
+            {/* /memo 直下はまだメモ未選択時のプレースホルダー */}
             <Route path="memo" element={<Home />} />
+            {/* /memo/:memoId で特定メモの編集ページ */}
+            <Route path="memo/:memoId" element={<Memo />} />
           </Route>
         </Routes>
       </BrowserRouter>
