@@ -298,3 +298,25 @@ urlはnavigateで更新する。
 97. ＋ボタンでメモを新規追加してみよう
 client/src/components/common/Sidebar.jsxに
 memoApi.create()で取得したのをdataのところだけ取り出す。そうじゃないとaxiosのレスポンス全体が入ってしまって警告が出る。
+
+#セクション8: 【Notionアプリ開発】フロントエンド構築編(絵文字ピッカー編)
+98. 絵文字ピッカー用のコンポーネントを作成しよう
+../components/common/EmojiPicker作成、
+Memo.jsxからpropsでiconを送る。
+99. 絵文字アイコンの大きさ等を修正しよう
+Typographyでスタイル修正、useEffect,useStateを準備。
+100. 絵文字アイコン用のライブラリをインストールしてみよう
+https://www.npmjs.com/package/@emoji-mart/react
+昔の使ってるなら、こう。
+import "emoji-mart/css/emoji-mart.css";
+import { Picker } from "emoji-mart";
+
+101. 絵文字をクリックしてピッカーの表示・非表示を実装しよう
+isShowPickerをstateで管理して、onclickでstate反転させる
+
+102. 絵文字コードから絵文字アイコンを取り出してみよう
+onEmojiSelect→onSelect
+?
+103. 変更した絵文字にメモのアイコンを更新しよう
+?
+propsで絵文字情報を送るのはわかった。

@@ -13,6 +13,7 @@ import memoApi from "../api/memoApi";
 // メモ削除後に一覧を更新するためReduxを利用
 import { useDispatch, useSelector } from "react-redux";
 import { setMemo } from "../redux/features/memoSlice";
+import EmojiPicker from "../components/common/EmojiPicker";
 // 単一メモを表示・編集するページコンポーネント
 const Memo = () => {
   // URLの:memoId パラメータを取得
@@ -20,6 +21,8 @@ const Memo = () => {
   // タイトルと本文の入力状態
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+
+  const [icon, setIcon] = useState("");
   // Reduxのdispatch関数
   const dispatch = useDispatch();
   // ストア上に保持されている全メモ一覧
@@ -33,6 +36,7 @@ const Memo = () => {
         const res = await memoApi.getOne(memoId);
         setTitle(res.data.title);
         setDescription(res.data.description);
+        setIcon(res.data.icon);
       } catch (error) {
         alert(error);
       }
@@ -94,6 +98,19 @@ const Memo = () => {
     }
   };
 
+  const onIconChange = async (newIcon) => {
+    let temp = [...memos];
+    const index = temp.findIndex((e) => e._id === memoId);
+    temp[index] = { ...temp[index], icon: newIcon };
+    setIcon(newIcon);
+    dispatch(setMemo(temp));
+    try {
+      await memoApi.update(memoId, { icon: newIcon });
+    } catch (error) {
+      alert(error);
+    }
+  };
+
   return (
     <>
       {/* ヘッダー部分：お気に入り・削除ボタン */}
@@ -113,30 +130,33 @@ const Memo = () => {
       </Box>
       {/* フォーム部分：タイトルと本文を入力 */}
       <Box sx={{ padding: "10px,50px" }}>
-        <TextField
-          value={title}
-          placeholder="無題"
-          variant="outlined"
-          fullWidth
-          sx={{
-            ".MuiOutlinedInput-input": { padding: 0 },
-            ".MuiOutlinedInput-notchedOutline": { border: "none" },
-            ".MuiOutlinedInput-root": { fontSize: "2rem", fontWeight: "700" },
-          }}
-          onChange={updateTitle}
-        />
-        <TextField
-          value={description}
-          placeholder="追加"
-          variant="outlined"
-          fullWidth
-          sx={{
-            ".MuiOutlinedInput-input": { padding: 0 },
-            ".MuiOutlinedInput-notchedOutline": { border: "none" },
-            ".MuiOutlinedInput-root": { fontSize: "1rem" },
-          }}
-          onChange={updateDescription}
-        />
+        <Box>
+          <EmojiPicker icon={icon} onChange={onIconChange} />
+          <TextField
+            value={title}
+            placeholder="無題"
+            variant="outlined"
+            fullWidth
+            sx={{
+              ".MuiOutlinedInput-input": { padding: 0 },
+              ".MuiOutlinedInput-notchedOutline": { border: "none" },
+              ".MuiOutlinedInput-root": { fontSize: "2rem", fontWeight: "700" },
+            }}
+            onChange={updateTitle}
+          />
+          <TextField
+            value={description}
+            placeholder="追加"
+            variant="outlined"
+            fullWidth
+            sx={{
+              ".MuiOutlinedInput-input": { padding: 0 },
+              ".MuiOutlinedInput-notchedOutline": { border: "none" },
+              ".MuiOutlinedInput-root": { fontSize: "1rem" },
+            }}
+            onChange={updateDescription}
+          />
+        </Box>
       </Box>
     </>
   );
